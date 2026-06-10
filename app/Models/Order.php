@@ -22,12 +22,14 @@ class Order extends Model
     const STATUS_WAITING  = 'menunggu_konfirmasi';
     const STATUS_DIPROSES = 'diproses';
     const STATUS_SELESAI  = 'selesai';
+    const STATUS_DITOLAK  = 'ditolak';
 
     const STATUSES = [
         self::STATUS_PENDING  => ['label' => 'Pending',             'color' => 'yellow'],
         self::STATUS_WAITING  => ['label' => 'Menunggu Konfirmasi', 'color' => 'orange'],
         self::STATUS_DIPROSES => ['label' => 'Diproses',            'color' => 'blue'],
         self::STATUS_SELESAI  => ['label' => 'Selesai',             'color' => 'green'],
+        self::STATUS_DITOLAK  => ['label' => 'Ditolak',             'color' => 'red'],
     ];
 
     // ── Payment statuses ──────────────────────────────────────

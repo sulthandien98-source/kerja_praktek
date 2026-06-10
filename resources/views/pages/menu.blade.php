@@ -21,7 +21,7 @@
     ════════════════════════════════ --}}
     <div class="flex-1 min-w-0">
 
-      {{-- Cart error (auth, above grid on mobile) --}}
+      {{-- Cart error (auth only) --}}
       @auth
       <div x-show="cartError" x-cloak class="alert alert-error mb-4">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -74,6 +74,8 @@
               </span>
 
               @if($available)
+              {{-- Tombol + tampil untuk SEMUA user (termasuk guest) --}}
+              {{-- Guest: klik → modal login | Auth: langsung tambah ke keranjang --}}
               <button
                 @click="add({{ $p->id }})"
                 :disabled="adding === {{ $p->id }}"
@@ -145,7 +147,7 @@
                  style="width:44px;height:44px;font-size:20px;background:var(--orange-50);">
               🛒
             </div>
-            <p class="text-sm text-gray-500 mb-4">Masuk untuk mulai memesan</p>
+            <p class="text-sm text-gray-500 mb-4">Pilih menu favoritmu, lalu masuk untuk memesan</p>
             <a href="{{ route('login') }}" class="btn btn-primary btn-sm btn-block mb-2">
               Masuk
             </a>
@@ -240,8 +242,7 @@
 
 </div>
 
-@guest
-{{-- MODAL: guest prompt --}}
+{{-- MODAL: guest prompt — muncul saat guest klik tombol + --}}
 <div id="guestModal"
      class="modal-backdrop hidden"
      onclick="if(event.target===this)closeGuestModal()">
@@ -263,16 +264,13 @@
     </button>
   </div>
 </div>
-@endguest
 
 <script>
 const IS_AUTH = {{ auth()->check() ? 'true' : 'false' }};
 
 function closeGuestModal() {
     const modal = document.getElementById('guestModal');
-    if (modal) {
-        modal.classList.add('hidden');
-    }
+    if (modal) modal.classList.add('hidden');
 }
 
 function cartApp() {
@@ -286,7 +284,6 @@ function cartApp() {
         if (r.ok) this.cart = await r.json();
       } catch(e) {}
       this.$watch('cart', (val) => {
-        // Sync count to topbar badges
         const count = Object.values(val).reduce((s,i) => s + (i.qty||0), 0);
         window.__cartCount = count;
       });
@@ -303,6 +300,7 @@ function cartApp() {
     },
 
     async add(id) {
+      // Guest: tampilkan modal login
       if (!IS_AUTH) {
         document.getElementById('guestModal').classList.remove('hidden');
         return;

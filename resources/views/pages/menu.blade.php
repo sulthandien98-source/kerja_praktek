@@ -6,33 +6,31 @@
 
 <div x-data="cartApp()" x-init="init()">
 
-  {{-- Page header --}}
   <div class="page-header">
     <div>
       <h1 class="page-title">Menu Kami</h1>
       <p class="page-subtitle">{{ $products->count() }} item tersedia</p>
     </div>
+    @auth
+    <a href="{{ route('checkout') }}" class="btn btn-primary btn-sm md:hidden" x-show="Object.keys(cart).length > 0" x-cloak>
+      Checkout
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+    @endauth
   </div>
+
+  @auth
+  <div x-show="cartError" x-cloak class="alert alert-error mb-4 lg:hidden">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0;">
+      <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+    </svg>
+    <span x-text="cartError"></span>
+  </div>
+  @endauth
 
   <div class="flex flex-col lg:flex-row gap-5">
 
-    {{-- ════════════════════════════════
-         PRODUCT GRID
-    ════════════════════════════════ --}}
     <div class="flex-1 min-w-0">
-
-      {{-- Cart error (auth only) --}}
-      @auth
-      <div x-show="cartError" x-cloak class="alert alert-error mb-4">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
-        </svg>
-        <span x-text="cartError"></span>
-      </div>
-      @endauth
-
-      {{-- Grid --}}
       <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
 
         @forelse($products as $p)
@@ -40,9 +38,15 @@
 
         <div class="product-card {{ !$available ? 'unavailable' : '' }}">
 
-          {{-- Image / emoji area --}}
           <div class="product-img">
-            <span role="img" aria-label="Dim Sum">🥟</span>
+            @if($p->image_url)
+              <img src="{{ $p->image_url }}" alt="{{ $p->name }}"
+                   class="w-full h-full object-cover"
+                   loading="lazy"
+                   onerror="this.parentElement.innerHTML='<span role=\'img\' aria-label=\'Dim Sum\' style=\'font-size:36px;\'>🥟</span>'">
+            @else
+              <span role="img" aria-label="Dim Sum" style="font-size:36px;">🥟</span>
+            @endif
 
             @if(!$available)
               <div class="absolute inset-0 flex items-center justify-center"
@@ -50,47 +54,40 @@
                 <span class="badge badge-red" style="font-size:10px;">HABIS</span>
               </div>
             @elseif($p->stock <= 5)
-              <span class="badge badge-orange absolute top-2 right-2"
-                    style="font-size:10px;">
+              <span class="badge badge-orange absolute top-2 right-2" style="font-size:10px;">
                 Sisa {{ $p->stock }}
               </span>
             @endif
           </div>
 
-          {{-- Info --}}
           <div class="p-3 md:p-4">
             <h3 class="font-bold text-sm text-gray-900 leading-tight truncate mb-1">
               {{ $p->name }}
             </h3>
 
-            <p class="text-xs text-gray-400 mb-3 truncate-2" style="min-height:2.4em;">
+            <p class="text-xs text-gray-400 mb-3 truncate-2" style="min-height:2.4em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
               {{ $p->description ?: "Dimsum spesial pilihan Mak'Angga" }}
             </p>
 
             <div class="flex items-center justify-between gap-2">
-              <span class="font-extrabold text-sm leading-none"
-                    style="color:var(--orange-600);">
+              <span class="font-extrabold text-sm leading-none" style="color:var(--orange-600);">
                 Rp&nbsp;{{ number_format($p->price, 0, ',', '.') }}
               </span>
 
               @if($available)
-              {{-- Tombol + tampil untuk SEMUA user (termasuk guest) --}}
-              {{-- Guest: klik → modal login | Auth: langsung tambah ke keranjang --}}
               <button
                 @click="add({{ $p->id }})"
                 :disabled="adding === {{ $p->id }}"
                 class="btn btn-primary btn-sm flex-shrink-0"
-                style="padding:7px 10px; min-width:34px; border-radius:8px;">
+                style="padding:7px 10px; min-width:34px; border-radius:8px;"
+                aria-label="Tambah {{ $p->name }} ke keranjang">
                 <template x-if="adding !== {{ $p->id }}">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                       stroke="currentColor" stroke-width="2.5">
-                    <line x1="12" y1="5" x2="12" y2="19"/>
-                    <line x1="5" y1="12" x2="19" y2="12"/>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                   </svg>
                 </template>
                 <template x-if="adding === {{ $p->id }}">
-                  <svg class="animate-spin" width="14" height="14" viewBox="0 0 24 24"
-                       fill="none" stroke="currentColor" stroke-width="2">
+                  <svg class="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" opacity=".2"/>
                     <path d="M21 12a9 9 0 01-9 9"/>
                   </svg>
@@ -115,17 +112,12 @@
       </div>
     </div>
 
-    {{-- ════════════════════════════════
-         CART PANEL — desktop sticky
-    ════════════════════════════════ --}}
     <div class="hidden lg:block w-72 xl:w-80 flex-shrink-0">
       <div class="cart-panel">
 
-        {{-- Header --}}
         <div class="cart-panel-header">
           <div class="flex items-center gap-2">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2" class="text-gray-400">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-gray-400">
               <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
               <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
             </svg>
@@ -138,7 +130,6 @@
           @endauth
         </div>
 
-        {{-- Body --}}
         <div class="cart-panel-body">
 
           @guest
@@ -147,7 +138,7 @@
                  style="width:44px;height:44px;font-size:20px;background:var(--orange-50);">
               🛒
             </div>
-            <p class="text-sm text-gray-500 mb-4">Pilih menu favoritmu, lalu masuk untuk memesan</p>
+            <p class="text-sm text-gray-500 mb-4">Masuk untuk mulai memesan</p>
             <a href="{{ route('login') }}" class="btn btn-primary btn-sm btn-block mb-2">
               Masuk
             </a>
@@ -159,7 +150,6 @@
 
           @auth
 
-          {{-- Error --}}
           <div x-show="cartError" x-cloak
                class="alert alert-error mb-3" style="padding:8px 12px; font-size:12px;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -170,58 +160,50 @@
             <span x-text="cartError"></span>
           </div>
 
-          {{-- Empty --}}
           <template x-if="items.length === 0">
             <div class="text-center py-6">
               <p class="text-sm text-gray-400">Keranjang kosong</p>
             </div>
           </template>
 
-          {{-- Items --}}
           <template x-for="item in items" :key="item.id">
             <div class="flex items-center gap-2 py-2.5"
                  style="border-bottom:1px solid var(--border);">
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-gray-800 truncate"
-                   x-text="item.name"></p>
-                <p class="text-xs font-bold mt-0.5"
-                   style="color:var(--orange-600);"
+                <p class="text-sm font-semibold text-gray-800 truncate" x-text="item.name"></p>
+                <p class="text-xs font-bold mt-0.5" style="color:var(--orange-600);"
                    x-text="'Rp ' + item.price.toLocaleString('id-ID')"></p>
               </div>
               <div class="flex items-center gap-1 flex-shrink-0">
                 <button @click="update(item.id, 'minus')"
-                        class="w-7 h-7 rounded-lg flex items-center justify-center
-                               text-sm font-bold transition-colors"
+                        class="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold transition-colors"
                         style="background:var(--gray-100); color:var(--gray-600);"
                         onmouseover="this.style.background='var(--gray-200)'"
-                        onmouseout="this.style.background='var(--gray-100)'">−</button>
-                <span class="w-6 text-center text-sm font-extrabold text-gray-900"
-                      x-text="item.qty"></span>
+                        onmouseout="this.style.background='var(--gray-100)'"
+                        aria-label="Kurangi">−</button>
+                <span class="w-6 text-center text-sm font-extrabold text-gray-900" x-text="item.qty"></span>
                 <button @click="update(item.id, 'plus')"
-                        class="w-7 h-7 rounded-lg flex items-center justify-center
-                               text-sm font-bold transition-colors"
+                        class="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold transition-colors"
                         style="background:var(--orange-500); color:white;"
                         onmouseover="this.style.background='var(--orange-600)'"
-                        onmouseout="this.style.background='var(--orange-500)'">+</button>
+                        onmouseout="this.style.background='var(--orange-500)'"
+                        aria-label="Tambah">+</button>
               </div>
             </div>
           </template>
 
-          {{-- Footer --}}
           <template x-if="items.length > 0">
             <div class="pt-3 mt-1">
               <div class="flex items-center justify-between mb-4">
                 <span class="text-sm font-semibold text-gray-600">Total</span>
-                <span class="font-extrabold text-base"
-                      style="color:var(--orange-600);"
+                <span class="font-extrabold text-base" style="color:var(--orange-600);"
                       x-text="'Rp ' + total.toLocaleString('id-ID')"></span>
               </div>
               <a href="{{ route('checkout') }}"
                  class="btn btn-primary btn-block"
                  style="border-radius:10px; padding:12px 16px; font-size:14px;">
                 Checkout
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
               </a>
@@ -242,10 +224,11 @@
 
 </div>
 
-{{-- MODAL: guest prompt — muncul saat guest klik tombol + --}}
+@guest
 <div id="guestModal"
      class="modal-backdrop hidden"
-     onclick="if(event.target===this)closeGuestModal()">
+     onclick="if(event.target===this)closeGuestModal()"
+     role="dialog" aria-modal="true" aria-label="Login diperlukan">
   <div class="modal text-center">
     <div style="font-size:40px; margin-bottom:12px;">🛒</div>
     <h3 class="text-base font-extrabold text-gray-900 mb-1">Mau pesan?</h3>
@@ -264,14 +247,20 @@
     </button>
   </div>
 </div>
+@endguest
 
 <script>
 const IS_AUTH = {{ auth()->check() ? 'true' : 'false' }};
+const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;
 
 function closeGuestModal() {
-    const modal = document.getElementById('guestModal');
+    var modal = document.getElementById('guestModal');
     if (modal) modal.classList.add('hidden');
 }
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeGuestModal();
+});
 
 function cartApp() {
   return {
@@ -284,7 +273,7 @@ function cartApp() {
         if (r.ok) this.cart = await r.json();
       } catch(e) {}
       this.$watch('cart', (val) => {
-        const count = Object.values(val).reduce((s,i) => s + (i.qty||0), 0);
+        const count = Object.values(val).reduce((s, i) => s + (i.qty || 0), 0);
         window.__cartCount = count;
       });
     },
@@ -300,9 +289,9 @@ function cartApp() {
     },
 
     async add(id) {
-      // Guest: tampilkan modal login
       if (!IS_AUTH) {
-        document.getElementById('guestModal').classList.remove('hidden');
+        var m = document.getElementById('guestModal');
+        if (m) m.classList.remove('hidden');
         return;
       }
       this.adding = id;
@@ -310,22 +299,23 @@ function cartApp() {
       try {
         const r = await fetch('/cart/add', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-          },
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
           body: JSON.stringify({ id })
         });
         if (r.status === 401) { window.location.href = '{{ route("login") }}'; return; }
+        const data = await r.json();
         if (!r.ok) {
-          const d = await r.json();
-          this.cartError = d.error || 'Gagal menambahkan item';
+          this.cartError = data.error || 'Gagal menambahkan item';
           setTimeout(() => this.cartError = null, 3000);
           return;
         }
-        this.cart = await r.json();
-      } catch(e) {}
-      finally { this.adding = null; }
+        this.cart = data;
+      } catch(e) {
+        this.cartError = 'Gagal terhubung ke server';
+        setTimeout(() => this.cartError = null, 3000);
+      } finally {
+        this.adding = null;
+      }
     },
 
     async update(id, action) {
@@ -333,13 +323,16 @@ function cartApp() {
       try {
         const r = await fetch('/cart/update', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-          },
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
           body: JSON.stringify({ id, action })
         });
-        if (r.ok) this.cart = await r.json();
+        const data = await r.json();
+        if (r.ok) {
+          this.cart = data;
+        } else {
+          this.cartError = data.error || 'Gagal update keranjang';
+          setTimeout(() => this.cartError = null, 3000);
+        }
       } catch(e) {}
     },
 
@@ -348,9 +341,7 @@ function cartApp() {
       try {
         const r = await fetch('/cart/clear', {
           method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-          }
+          headers: { 'X-CSRF-TOKEN': CSRF_TOKEN }
         });
         if (r.ok) this.cart = await r.json();
       } catch(e) {}

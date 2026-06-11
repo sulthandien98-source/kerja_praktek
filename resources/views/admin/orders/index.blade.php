@@ -11,18 +11,17 @@
     </div>
 </div>
 
-{{-- Pending payment alert --}}
-{{-- FIX: $pendingPaymentCount harus dikirim dari controller, bukan dihitung dari paginated collection --}}
 @if(isset($pendingPaymentCount) && $pendingPaymentCount > 0)
 <div class="alert alert-warning mb-4">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0;">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
     <span><strong>{{ $pendingPaymentCount }} pesanan</strong> menunggu verifikasi pembayaran.</span>
 </div>
 @endif
 
-{{-- Session flash messages --}}
 @if(session('success'))
-<div class="alert alert-success mb-4">
+<div class="alert alert-success mb-4" x-data x-init="setTimeout(() => $el.remove(), 4000)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0;"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
     <span>{{ session('success') }}</span>
 </div>
@@ -30,12 +29,11 @@
 
 @if(session('error'))
 <div class="alert alert-error mb-4">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0;"><circle cx="12" cy="12" r="10"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
     <span>{{ session('error') }}</span>
 </div>
 @endif
 
-{{-- Filter & Search --}}
 <div class="card card-p mb-4">
     <form method="GET" action="{{ route('admin.orders.index') }}" class="flex flex-wrap gap-3 items-end">
         <div class="form-group mb-0 flex-1 min-w-40">

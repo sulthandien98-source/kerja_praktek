@@ -6,11 +6,10 @@
 
 <div class="max-w-2xl mx-auto">
 
-  {{-- Page header --}}
   <div class="page-header">
     <div>
       <h1 class="page-title">Checkout</h1>
-      <p class="page-subtitle">Konfirmasi pesanan dan data pengiriman</p>
+      <p class="page-subtitle">Konfirmasi data pengiriman</p>
     </div>
     <a href="{{ route('menu') }}" class="btn btn-secondary btn-sm">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -22,9 +21,8 @@
 
   @if($errors->any())
   <div class="alert alert-error mb-4">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0;">
+      <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
     </svg>
     {{ $errors->first() }}
   </div>
@@ -32,7 +30,6 @@
 
   @php $total = collect($cart)->sum(fn($i) => $i['price'] * $i['qty']); @endphp
 
-  {{-- MOBILE: sticky order total bar --}}
   <div class="flex items-center justify-between mb-4 px-4 py-3 rounded-xl md:hidden"
        style="background:var(--orange-50); border:1px solid var(--orange-200);">
     <span class="text-sm font-semibold text-gray-700">
@@ -45,11 +42,10 @@
 
   <div class="flex flex-col md:flex-row gap-4">
 
-    {{-- LEFT: form --}}
     <div class="flex-1 min-w-0">
       <div class="card card-p">
         <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-4">
-          Data Pengiriman
+          Data Penerima
         </h2>
 
         <form method="POST" action="{{ route('checkout.process') }}"
@@ -59,10 +55,11 @@
           <div class="form-group">
             <label class="form-label" for="name">Nama Lengkap</label>
             <input type="text" id="name" name="name"
-                   value="{{ old('name') }}"
+                   value="{{ old('name', auth()->user()->name ?? '') }}"
                    class="input {{ $errors->has('name') ? 'error' : '' }}"
                    placeholder="Masukkan nama penerima"
                    autocomplete="name"
+                   maxlength="100"
                    required>
             @error('name')
             <p class="field-error">{{ $message }}</p>
@@ -77,6 +74,7 @@
                    placeholder="08xxxxxxxxxx"
                    autocomplete="tel"
                    inputmode="tel"
+                   maxlength="20"
                    required>
             @error('phone')
             <p class="field-error">{{ $message }}</p>
@@ -90,6 +88,7 @@
                       placeholder="Jl. Contoh No. 1, RT/RW, Kelurahan, Kota"
                       autocomplete="street-address"
                       rows="3"
+                      maxlength="500"
                       required>{{ old('address') }}</textarea>
             @error('address')
             <p class="field-error">{{ $message }}</p>
@@ -103,13 +102,10 @@
               <line x1="12" y1="8" x2="12" y2="12"/>
               <line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
-            <span class="text-xs">
-              Pastikan data sudah benar sebelum melanjutkan.
-            </span>
+            <span class="text-xs">Pastikan data sudah benar sebelum melanjutkan.</span>
           </div>
 
-          <button type="submit" id="submitBtn"
-                  class="btn btn-primary btn-xl btn-block">
+          <button type="submit" id="submitBtn" class="btn btn-primary btn-xl btn-block">
             <span id="submitText">Lanjut ke Pembayaran</span>
             <svg id="submitArrow" width="16" height="16" viewBox="0 0 24 24"
                  fill="none" stroke="currentColor" stroke-width="2.5">
@@ -125,7 +121,6 @@
       </div>
     </div>
 
-    {{-- RIGHT: order summary (desktop only) --}}
     <div class="hidden md:block w-72 flex-shrink-0">
       <div class="card card-p" style="position:sticky; top:calc(var(--topbar-h) + 20px);">
         <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">
@@ -157,7 +152,13 @@
 </div>
 
 <script>
-document.getElementById('checkoutForm').addEventListener('submit', function () {
+document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+  var name = document.getElementById('name').value.trim();
+  var phone = document.getElementById('phone').value.trim();
+  var address = document.getElementById('address').value.trim();
+
+  if (!name || !phone || !address) return;
+
   document.getElementById('submitBtn').disabled = true;
   document.getElementById('submitText').textContent = 'Memproses...';
   document.getElementById('submitArrow').classList.add('hidden');

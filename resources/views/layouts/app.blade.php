@@ -4,32 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta name="theme-color" content="#f97316">
   <title>@yield('title', 'Menu') — Dimsum Mak'Angga</title>
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
-<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body>
 
-{{-- ═══════════════════════════════════════════
-     TOPBAR
-═══════════════════════════════════════════ --}}
 <header class="topbar">
 
-  {{-- Brand --}}
   <a href="{{ route('menu') }}" class="topbar-brand">
-    <div class="brand-icon">🥟</div>
+    <div class="brand-icon" style="font-size:22px;display:flex;align-items:center;justify-content:center;">🥟</div>
     <div>
       <div class="brand-name">Mak'Angga</div>
       <div class="brand-sub">Dim Sum</div>
     </div>
   </a>
 
-  {{-- Desktop right --}}
   <div class="hidden md:flex items-center gap-1">
     @auth
 
-    {{-- Cart button with live count --}}
     <a href="{{ route('checkout') }}"
        class="btn btn-ghost btn-sm relative"
        id="topbar-cart-btn">
@@ -43,7 +38,6 @@
             style="display:none; top:-4px; right:-4px; border-color:transparent;"></span>
     </a>
 
-    {{-- User dropdown --}}
     <div x-data="{ open: false }" class="relative">
       <button @click="open = !open" @click.outside="open = false"
               class="flex items-center gap-2 btn btn-ghost btn-sm">
@@ -116,7 +110,6 @@
     @endauth
   </div>
 
-  {{-- Mobile right --}}
   @auth
   <a href="{{ route('checkout') }}"
      class="relative btn btn-ghost btn-sm md:hidden"
@@ -135,9 +128,8 @@
 
 </header>
 
-{{-- Flash messages --}}
 @if(session('success'))
-<div class="mx-4 mt-3 alert alert-success animate-fade-up" role="alert">
+<div class="mx-4 mt-3 alert alert-success animate-fade-up" role="alert" x-data x-init="setTimeout(() => $el.remove(), 4000)">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
     <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
   </svg>
@@ -145,7 +137,7 @@
 </div>
 @endif
 @if(session('error'))
-<div class="mx-4 mt-3 alert alert-error animate-fade-up" role="alert">
+<div class="mx-4 mt-3 alert alert-error animate-fade-up" role="alert" x-data x-init="setTimeout(() => $el.remove(), 5000)">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
     <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
   </svg>
@@ -153,12 +145,8 @@
 </div>
 @endif
 
-{{-- ═══════════════════════════════════════════
-     LAYOUT SHELL
-═══════════════════════════════════════════ --}}
 <div class="app-shell">
 
-  {{-- Sidebar — desktop only --}}
   <aside class="sidebar hidden md:flex flex-col">
     <div class="sidebar-inner">
 
@@ -234,7 +222,6 @@
     </div>
   </aside>
 
-  {{-- Main --}}
   <main class="main-content">
     <div class="page-body">
       @yield('content')
@@ -243,9 +230,6 @@
 
 </div>
 
-{{-- ═══════════════════════════════════════════
-     BOTTOM NAV — mobile only
-═══════════════════════════════════════════ --}}
 <nav class="bottom-nav md:hidden" aria-label="Navigasi utama">
 
   <a href="{{ route('menu') }}"
@@ -266,6 +250,7 @@
       <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
     </svg>
     Keranjang
+    <span id="bottom-cart-badge" style="display:none;position:absolute;top:2px;right:16px;background:var(--orange-500);color:white;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:99px;display:none;align-items:center;justify-content:center;padding:0 4px;"></span>
   </a>
 
   <a href="{{ route('orders') }}"
@@ -305,17 +290,15 @@
 
 </nav>
 
-{{-- Cart badge sync — runs after Alpine initialises cart --}}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  // Poll cart count from window (set by cartApp alpine component)
-  let lastCount = 0;
-  setInterval(function () {
-    const count = window.__cartCount || 0;
+  var lastCount = -1;
+  function syncBadges(count) {
     if (count === lastCount) return;
     lastCount = count;
-    ['cart-count-badge','cart-count-badge-mobile'].forEach(function(id) {
-      const el = document.getElementById(id);
+    var ids = ['cart-count-badge', 'cart-count-badge-mobile'];
+    ids.forEach(function(id) {
+      var el = document.getElementById(id);
       if (!el) return;
       if (count > 0) {
         el.textContent = count > 9 ? '9+' : count;
@@ -324,6 +307,18 @@ document.addEventListener('DOMContentLoaded', function () {
         el.style.display = 'none';
       }
     });
+    var bot = document.getElementById('bottom-cart-badge');
+    if (bot) {
+      if (count > 0) {
+        bot.textContent = count > 9 ? '9+' : count;
+        bot.style.display = 'flex';
+      } else {
+        bot.style.display = 'none';
+      }
+    }
+  }
+  setInterval(function () {
+    syncBadges(window.__cartCount || 0);
   }, 300);
 });
 </script>

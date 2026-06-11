@@ -16,23 +16,19 @@ class Order extends Model
         'total_price'         => 'integer',
     ];
 
-    // ── Order statuses ────────────────────────────────────────
-
     const STATUS_PENDING  = 'pending';
     const STATUS_WAITING  = 'menunggu_konfirmasi';
     const STATUS_DIPROSES = 'diproses';
     const STATUS_SELESAI  = 'selesai';
-    const STATUS_DITOLAK  = 'ditolak';
+    const STATUS_CANCELLED = 'dibatalkan';
 
     const STATUSES = [
-        self::STATUS_PENDING  => ['label' => 'Pending',             'color' => 'yellow'],
-        self::STATUS_WAITING  => ['label' => 'Menunggu Konfirmasi', 'color' => 'orange'],
-        self::STATUS_DIPROSES => ['label' => 'Diproses',            'color' => 'blue'],
-        self::STATUS_SELESAI  => ['label' => 'Selesai',             'color' => 'green'],
-        self::STATUS_DITOLAK  => ['label' => 'Ditolak',             'color' => 'red'],
+        self::STATUS_PENDING   => ['label' => 'Pending',             'color' => 'yellow'],
+        self::STATUS_WAITING   => ['label' => 'Menunggu Konfirmasi', 'color' => 'orange'],
+        self::STATUS_DIPROSES  => ['label' => 'Diproses',            'color' => 'blue'],
+        self::STATUS_SELESAI   => ['label' => 'Selesai',             'color' => 'green'],
+        self::STATUS_CANCELLED => ['label' => 'Dibatalkan',          'color' => 'red'],
     ];
-
-    // ── Payment statuses ──────────────────────────────────────
 
     const PAYMENT_UNPAID   = 'unpaid';
     const PAYMENT_UPLOADED = 'uploaded';
@@ -41,12 +37,10 @@ class Order extends Model
 
     const PAYMENT_STATUSES = [
         self::PAYMENT_UNPAID   => ['label' => 'Belum Bayar',         'color' => 'gray'],
-        self::PAYMENT_UPLOADED => ['label' => 'Menunggu Verifikasi',  'color' => 'yellow'],
-        self::PAYMENT_APPROVED => ['label' => 'Terverifikasi',        'color' => 'green'],
-        self::PAYMENT_REJECTED => ['label' => 'Ditolak',              'color' => 'red'],
+        self::PAYMENT_UPLOADED => ['label' => 'Menunggu Verifikasi', 'color' => 'yellow'],
+        self::PAYMENT_APPROVED => ['label' => 'Terverifikasi',       'color' => 'green'],
+        self::PAYMENT_REJECTED => ['label' => 'Ditolak',             'color' => 'red'],
     ];
-
-    // ── Relationships ─────────────────────────────────────────
 
     public function items()
     {
@@ -58,8 +52,6 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
 
-    // ── Order status accessors ────────────────────────────────
-
     public function getStatusLabelAttribute(): string
     {
         return self::STATUSES[$this->status]['label'] ?? ucfirst($this->status);
@@ -69,8 +61,6 @@ class Order extends Model
     {
         return self::STATUSES[$this->status]['color'] ?? 'gray';
     }
-
-    // ── Payment status accessors ──────────────────────────────
 
     public function getPaymentStatusLabelAttribute(): string
     {
@@ -89,13 +79,16 @@ class Order extends Model
             : null;
     }
 
-    // ── Helpers ───────────────────────────────────────────────
-
     public function canUploadPayment(): bool
     {
         return in_array($this->payment_status ?? self::PAYMENT_UNPAID, [
             self::PAYMENT_UNPAID,
             self::PAYMENT_REJECTED,
         ]);
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
     }
 }

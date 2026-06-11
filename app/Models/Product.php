@@ -12,6 +12,7 @@ class Product extends Model
         'description',
         'stock',
         'is_available',
+        'image',
     ];
 
     protected $casts = [
@@ -28,5 +29,12 @@ class Product extends Model
     public function isAvailable(): bool
     {
         return $this->is_available && $this->stock > 0;
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image
+            ? asset('storage/' . $this->image)
+            : null;
     }
 }

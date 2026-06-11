@@ -10,87 +10,36 @@ class AdminController extends Controller
 {
     public function dashboard()
     {
-        /*
-        |--------------------------------------------------------------------------
-        | TOTAL PRODUK
-        |--------------------------------------------------------------------------
-        */
         $totalProducts = Product::count();
+        $totalOrders   = Order::count();
 
-        /*
-        |--------------------------------------------------------------------------
-        | TOTAL PESANAN
-        |--------------------------------------------------------------------------
-        */
-        $totalOrders = Order::count();
-
-        /*
-        |--------------------------------------------------------------------------
-        | STATUS PESANAN
-        |--------------------------------------------------------------------------
-        */
         $pendingOrders = Order::where('status', Order::STATUS_PENDING)
+            ->orWhere('status', Order::STATUS_WAITING)
             ->count();
 
-        $completedOrders = Order::where('status', Order::STATUS_SELESAI)
-            ->count();
+        $completedOrders = Order::where('status', Order::STATUS_SELESAI)->count();
 
-        /*
-        |--------------------------------------------------------------------------
-        | TOTAL PENDAPATAN
-        |--------------------------------------------------------------------------
-        */
         $totalRevenue = Order::where('status', Order::STATUS_SELESAI)
+            ->where('payment_status', Order::PAYMENT_APPROVED)
             ->sum('total_price');
 
-        /*
-        |--------------------------------------------------------------------------
-        | PESANAN HARI INI
-        |--------------------------------------------------------------------------
-        */
-        $todayOrders = Order::whereDate(
-            'created_at',
-            Carbon::today()
-        )->count();
+        $todayOrders = Order::whereDate('created_at', Carbon::today())->count();
 
-        $todayRevenue = Order::whereDate(
-                'created_at',
-                Carbon::today()
-            )
+        $todayRevenue = Order::whereDate('created_at', Carbon::today())
             ->where('status', Order::STATUS_SELESAI)
+            ->where('payment_status', Order::PAYMENT_APPROVED)
             ->sum('total_price');
 
-        /*
-        |--------------------------------------------------------------------------
-        | STOK HABIS
-        |--------------------------------------------------------------------------
-        */
-        $outOfStock = Product::where('stock', '<=', 0)
-            ->count();
+        $outOfStock = Product::where('stock', '<=', 0)->count();
 
-        /*
-        |--------------------------------------------------------------------------
-        | DATA STATUS UNTUK CHART
-        |--------------------------------------------------------------------------
-        */
+        $pendingPaymentCount = Order::where('payment_status', Order::PAYMENT_UPLOADED)->count();
+
         $statusCounts = Order::selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        /*
-        |--------------------------------------------------------------------------
-        | ORDER TERBARU
-        |--------------------------------------------------------------------------
-        */
-        $latestOrders = Order::latest()
-            ->take(5)
-            ->get();
+        $latestOrders = Order::latest()->take(5)->get();
 
-        /*
-        |--------------------------------------------------------------------------
-        | RETURN VIEW
-        |--------------------------------------------------------------------------
-        */
         return view('admin.dashboard', compact(
             'totalProducts',
             'totalOrders',
@@ -100,6 +49,7 @@ class AdminController extends Controller
             'todayOrders',
             'todayRevenue',
             'outOfStock',
+            'pendingPaymentCount',
             'statusCounts',
             'latestOrders'
         ));

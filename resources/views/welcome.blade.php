@@ -3,83 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Dimsum Mak'Angga – Dimsum enak, segar, dan halal. Pesan sekarang!">
     <title>Dimsum Mak'Angga</title>
-
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        body { font-family: 'Poppins', sans-serif; }
-        .fade-up { opacity: 0; transform: translateY(30px); animation: fadeUp 0.8s ease forwards; }
-        .fade-up.delay-1 { animation-delay: 0.2s; }
-        .fade-up.delay-2 { animation-delay: 0.4s; }
-        .fade-up.delay-3 { animation-delay: 0.6s; }
-        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
-        .bg-main { background: linear-gradient(135deg, #ff4d4d, #ff7a18, #ffd700); }
-        .glass { background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.2); }
-    </style>
 </head>
+<body style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#292524 100%);min-height:100vh;font-family:'Plus Jakarta Sans',sans-serif;">
 
-<body class="bg-main min-h-screen flex items-center justify-center text-white relative overflow-hidden">
+<div class="min-h-screen flex flex-col items-center justify-center px-4 py-12 text-white">
 
-    <div class="absolute w-[500px] h-[500px] bg-white/10 blur-3xl rounded-full top-[-100px] left-[-100px] animate-pulse"></div>
-    <div class="absolute w-[400px] h-[400px] bg-yellow-300/20 blur-3xl rounded-full bottom-[-100px] right-[-100px] animate-pulse"></div>
+    <div class="text-center max-w-lg w-full">
 
-    <div class="relative text-center px-6 max-w-xl">
+        <div style="font-size:64px;line-height:1;margin-bottom:16px;">🥟</div>
 
-        <h1 class="text-5xl md:text-6xl font-extrabold mb-4 drop-shadow-lg fade-up">
-            🥟 Dimsum Mak'Angga
+        <h1 style="font-size:clamp(28px,6vw,48px);font-weight:900;letter-spacing:-1px;margin-bottom:8px;background:linear-gradient(90deg,#fb923c,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+            Dimsum Mak'Angga
         </h1>
 
-        <p class="text-white/90 mb-8 text-lg fade-up delay-1">
-            Dimsum Enak, Murah & Kekinian 🔥 <br>
-            Siap antar ke rumah kamu!
+        <p style="color:rgba(255,255,255,.65);font-size:16px;margin-bottom:10px;">
+            Fresh &bull; Homemade &bull; Halal
         </p>
 
-        <div class="flex justify-center gap-4 flex-wrap fade-up delay-2">
+        <p style="color:rgba(255,255,255,.45);font-size:13px;margin-bottom:36px;">
+            Dimsum spesial dari dapur Mak'Angga. Enak, segar, dan terjangkau.
+        </p>
 
+        <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:48px;">
             @auth
-
                 @if(auth()->user()->isAdmin())
                     <a href="{{ route('admin.dashboard') }}"
-                       class="bg-black text-yellow-400 px-6 py-3 rounded-xl font-semibold hover:scale-105 transition shadow-xl">
+                       style="background:linear-gradient(135deg,#f97316,#ea580c);color:white;padding:14px 28px;border-radius:14px;font-weight:700;font-size:15px;text-decoration:none;box-shadow:0 8px 24px rgba(249,115,22,.35);">
                         👑 Dashboard Admin
                     </a>
                 @else
                     <a href="{{ route('menu') }}"
-                       class="bg-white text-red-500 px-6 py-3 rounded-xl font-semibold hover:scale-105 transition shadow-xl">
-                        🍽️ Lihat Menu
+                       style="background:linear-gradient(135deg,#f97316,#ea580c);color:white;padding:14px 28px;border-radius:14px;font-weight:700;font-size:15px;text-decoration:none;box-shadow:0 8px 24px rgba(249,115,22,.35);">
+                        🍽️ Pesan Sekarang
+                    </a>
+                    <a href="{{ route('orders') }}"
+                       style="background:rgba(255,255,255,.1);color:white;padding:14px 28px;border-radius:14px;font-weight:600;font-size:15px;text-decoration:none;border:1px solid rgba(255,255,255,.2);">
+                        📦 Pesanan Saya
                     </a>
                 @endif
-
             @else
-
-                {{-- Guest: langsung ke menu, tidak paksa login --}}
                 <a href="{{ route('menu') }}"
-                   class="bg-white text-red-500 px-6 py-3 rounded-xl font-semibold hover:scale-105 transition shadow-xl">
+                   style="background:linear-gradient(135deg,#f97316,#ea580c);color:white;padding:14px 28px;border-radius:14px;font-weight:700;font-size:15px;text-decoration:none;box-shadow:0 8px 24px rgba(249,115,22,.35);">
                     🍽️ Lihat Menu
                 </a>
-
                 <a href="{{ route('login') }}"
-                   class="bg-black text-yellow-400 px-6 py-3 rounded-xl font-semibold hover:scale-105 transition shadow-xl">
-                    🔐 Login
+                   style="background:rgba(255,255,255,.1);color:white;padding:14px 28px;border-radius:14px;font-weight:600;font-size:15px;text-decoration:none;border:1px solid rgba(255,255,255,.2);">
+                    🔐 Masuk
                 </a>
-
+                <a href="{{ route('register') }}"
+                   style="background:rgba(255,255,255,.07);color:rgba(255,255,255,.7);padding:14px 28px;border-radius:14px;font-weight:600;font-size:15px;text-decoration:none;border:1px solid rgba(255,255,255,.12);">
+                    ✍️ Daftar Gratis
+                </a>
             @endauth
-
         </div>
 
-        <div class="mt-12 glass p-6 rounded-2xl shadow-2xl fade-up delay-3 hover:scale-105 transition">
-            <h2 class="text-xl font-bold mb-3 text-yellow-200">🔥 Promo Hari Ini</h2>
-            <p class="text-lg">
-                Semua Dimsum hanya
-                <span class="bg-yellow-300 text-black px-2 py-1 rounded font-bold">Rp 15.000</span>
-            </p>
-            <p class="text-white/80 text-sm mt-2">Buruan order sebelum kehabisan!</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:420px;margin:0 auto;">
+            <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px 12px;text-align:center;">
+                <div style="font-size:24px;margin-bottom:6px;">🥟</div>
+                <p style="font-size:12px;font-weight:700;color:rgba(255,255,255,.8);">Dimsum Segar</p>
+                <p style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;">Dibuat harian</p>
+            </div>
+            <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px 12px;text-align:center;">
+                <div style="font-size:24px;margin-bottom:6px;">🚀</div>
+                <p style="font-size:12px;font-weight:700;color:rgba(255,255,255,.8);">Order Mudah</p>
+                <p style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;">Langsung online</p>
+            </div>
+            <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px 12px;text-align:center;">
+                <div style="font-size:24px;margin-bottom:6px;">✅</div>
+                <p style="font-size:12px;font-weight:700;color:rgba(255,255,255,.8);">Halal & Higienis</p>
+                <p style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;">Terjamin kualitas</p>
+            </div>
         </div>
 
     </div>
+
+</div>
 
 </body>
 </html>

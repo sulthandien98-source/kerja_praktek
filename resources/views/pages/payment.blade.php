@@ -4,29 +4,41 @@
 
 @section('content')
 
-@php $total = collect(session('cart', []))->sum(fn($i) => $i['price'] * $i['qty']); @endphp
+@php
+  $cart = session('cart', []);
+  $total = collect($cart)->sum(fn($i) => $i['price'] * $i['qty']);
+@endphp
 
-<div class="max-w-lg mx-auto" x-data="{ loading: false, copied: false }">
+<div class="max-w-lg mx-auto" x-data="{ loading: false }">
 
   <div class="page-header">
     <div>
       <h1 class="page-title">Pembayaran</h1>
       <p class="page-subtitle">Transfer dan konfirmasi pesanan</p>
     </div>
+    <a href="{{ route('checkout') }}" class="btn btn-secondary btn-sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Edit Data
+    </a>
   </div>
 
-  {{-- Step indicator --}}
-  <div class="flex items-center gap-2 mb-5">
+  <div class="flex items-center gap-2 mb-5 px-1">
     <div class="flex items-center gap-1.5">
       <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
-           style="background:var(--orange-500);">1</div>
-      <span class="text-xs font-semibold text-gray-700">Transfer</span>
+           style="background:var(--green-500);">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <span class="text-xs font-semibold text-gray-500">Data</span>
     </div>
-    <div class="flex-1 h-px" style="background:var(--border);"></div>
+    <div class="flex-1 h-px" style="background:var(--orange-300);"></div>
     <div class="flex items-center gap-1.5">
-      <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-           style="background:var(--gray-100); color:var(--gray-400);">2</div>
-      <span class="text-xs font-semibold text-gray-400">Konfirmasi</span>
+      <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+           style="background:var(--orange-500);">2</div>
+      <span class="text-xs font-semibold text-gray-700">Transfer</span>
     </div>
     <div class="flex-1 h-px" style="background:var(--border);"></div>
     <div class="flex items-center gap-1.5">
@@ -36,9 +48,7 @@
     </div>
   </div>
 
-  {{-- Bank info — tap-to-copy on mobile --}}
-  <div class="card card-p mb-4"
-       style="border-color:var(--orange-200); background:var(--orange-50);">
+  <div class="card card-p mb-4" style="border-color:var(--orange-200); background:var(--orange-50);">
     <div class="flex items-center gap-3 mb-3">
       <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white flex-shrink-0"
            style="background:var(--orange-500); font-size:18px;">🏦</div>
@@ -46,26 +56,25 @@
         <p class="text-sm font-bold text-gray-900">Transfer BCA</p>
         <p class="text-xs text-gray-500">Bayar tepat nominal</p>
       </div>
-      <span class="badge badge-orange flex-shrink-0">Aktif</span>
+      <span class="badge badge-green flex-shrink-0">Aktif</span>
     </div>
 
     <div class="rounded-xl p-4 space-y-3" style="background:white; border:1px solid var(--border);">
 
-      {{-- No. Rekening with copy --}}
       <div class="flex items-center justify-between gap-2">
         <div>
           <p class="text-xs text-gray-400 mb-0.5">No. Rekening</p>
           <p class="font-extrabold text-gray-900 tracking-widest"
-             style="font-size:16px; font-family:monospace;"
+             style="font-size:18px; font-family:monospace; letter-spacing:.1em;"
              id="norek">0711982697</p>
         </div>
         <button
           onclick="copyNorek()"
           class="btn btn-secondary btn-sm flex-shrink-0"
           id="copyBtn"
+          type="button"
           aria-label="Salin nomor rekening">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
             <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
           </svg>
@@ -73,29 +82,27 @@
         </button>
       </div>
 
-      <div class="flex justify-between items-center">
-        <div>
-          <p class="text-xs text-gray-400 mb-0.5">Atas Nama</p>
-          <p class="font-semibold text-gray-800 text-sm">Endang Triningrum Rizkaw</p>
-        </div>
+      <div>
+        <p class="text-xs text-gray-400 mb-0.5">Atas Nama</p>
+        <p class="font-semibold text-gray-800 text-sm">Endang Triningrum Rizkaw</p>
       </div>
 
-      <div class="pt-2.5 mt-0.5" style="border-top:1px solid var(--border);">
+      <div class="pt-3 mt-0.5" style="border-top:1px solid var(--border);">
         <p class="text-xs text-gray-400 mb-0.5">Nominal Transfer</p>
         <p class="font-extrabold text-2xl leading-none" style="color:var(--orange-600);">
           Rp {{ number_format($total, 0, ',', '.') }}
         </p>
+        <p class="text-xs text-gray-400 mt-1">Transfer tepat nominal ini</p>
       </div>
 
     </div>
   </div>
 
-  {{-- Order summary (collapsible on mobile) --}}
   <div class="card mb-4" x-data="{ open: false }">
     <button @click="open = !open"
+            type="button"
             class="w-full flex items-center justify-between card-p"
-            style="padding-bottom: 0;"
-            :style="open ? 'padding-bottom:0;' : 'padding-bottom:16px;'">
+            :style="open ? 'padding-bottom:0;' : ''">
       <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">
         Ringkasan Pesanan
       </span>
@@ -112,7 +119,7 @@
     </button>
 
     <div x-show="open" x-collapse class="card-p" style="padding-top:12px;">
-      @foreach(session('cart', []) as $item)
+      @foreach($cart as $item)
       <div class="flex justify-between text-sm py-1.5">
         <span class="text-gray-600 min-w-0 pr-2 truncate">
           {{ $item['name'] }} <span class="text-gray-400">×{{ $item['qty'] }}</span>
@@ -122,6 +129,10 @@
         </span>
       </div>
       @endforeach
+      <div class="flex justify-between text-sm pt-2.5 mt-1" style="border-top:1px solid var(--border);">
+        <span class="font-bold text-gray-900">Total</span>
+        <span class="font-extrabold" style="color:var(--orange-600);">Rp {{ number_format($total, 0, ',', '.') }}</span>
+      </div>
     </div>
   </div>
 
@@ -133,7 +144,7 @@
       <line x1="12" y1="17" x2="12.01" y2="17"/>
     </svg>
     <span class="text-xs">
-      Transfer <strong>tepat nominal</strong>. Setelah klik konfirmasi, upload bukti di halaman pesanan.
+      Transfer <strong>tepat nominal</strong>. Setelah klik konfirmasi, upload bukti transfer di halaman berikutnya.
     </span>
   </div>
 
@@ -141,13 +152,13 @@
     @csrf
     <button type="submit"
             class="btn btn-primary btn-xl btn-block"
+            :disabled="loading"
             :class="loading ? 'opacity-60 pointer-events-none' : ''">
       <span x-show="!loading" class="flex items-center gap-2">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M20 6L9 17l-5-5"/>
         </svg>
-        Konfirmasi Pesanan
+        Konfirmasi & Buat Pesanan
       </span>
       <span x-show="loading" x-cloak class="flex items-center gap-2">
         <svg class="animate-spin" width="16" height="16" viewBox="0 0 24 24"
@@ -161,36 +172,34 @@
   </form>
 
   <p class="text-center text-xs text-gray-400 mt-3">
-    Pesanan dibuat → upload bukti → admin verifikasi
+    Buat pesanan → upload bukti transfer → admin verifikasi
   </p>
 
 </div>
 
 <script>
 function copyNorek() {
-  const norek = document.getElementById('norek').textContent.trim();
-  navigator.clipboard.writeText(norek).then(function () {
-    const label = document.getElementById('copyLabel');
+  var norek = document.getElementById('norek').textContent.trim();
+  var label = document.getElementById('copyLabel');
+  var btn = document.getElementById('copyBtn');
+
+  navigator.clipboard.writeText(norek).then(function() {
     label.textContent = 'Tersalin!';
-    document.getElementById('copyBtn').style.color = 'var(--green-600)';
-    setTimeout(function () {
+    btn.style.color = 'var(--green-600)';
+    setTimeout(function() {
       label.textContent = 'Salin';
-      document.getElementById('copyBtn').style.color = '';
+      btn.style.color = '';
     }, 2000);
-  }).catch(function () {
-    // Fallback for older browsers
-    const ta = document.createElement('textarea');
+  }).catch(function() {
+    var ta = document.createElement('textarea');
     ta.value = norek;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
+    ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
     document.body.appendChild(ta);
     ta.select();
-    document.execCommand('copy');
+    try { document.execCommand('copy'); } catch(e) {}
     document.body.removeChild(ta);
-    document.getElementById('copyLabel').textContent = 'Tersalin!';
-    setTimeout(function () {
-      document.getElementById('copyLabel').textContent = 'Salin';
-    }, 2000);
+    label.textContent = 'Tersalin!';
+    setTimeout(function() { label.textContent = 'Salin'; }, 2000);
   });
 }
 </script>

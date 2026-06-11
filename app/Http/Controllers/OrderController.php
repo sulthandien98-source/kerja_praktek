@@ -13,8 +13,6 @@ use Illuminate\Support\Facades\Storage;
 
 class OrderController extends Controller
 {
-    // ── User: Checkout ────────────────────────────────────────
-
     public function checkout()
     {
         $cart = session('cart', []);
@@ -28,7 +26,7 @@ class OrderController extends Controller
     {
         $request->validate([
             'name'    => 'required|string|max:100',
-            'phone'   => 'required|string|regex:/^[0-9+\-\s]{7,20}$/',
+            'phone'   => ['required', 'string', 'regex:/^[0-9+\-\s]{7,20}$/'],
             'address' => 'required|string|max:500',
         ]);
 
@@ -36,16 +34,12 @@ class OrderController extends Controller
         return redirect()->route('payment');
     }
 
-    // ── User: Payment page ────────────────────────────────────
-
     public function payment()
     {
         if (!session('checkout')) return redirect()->route('checkout');
         if (empty(session('cart', []))) return redirect()->route('menu');
         return view('pages.payment');
     }
-
-    // ── User: Store order (price re-validated from DB) ────────
 
     public function store(Request $request)
     {
@@ -75,7 +69,6 @@ class OrderController extends Controller
                     throw new \Exception("Stok {$product->name} tidak cukup.");
                 }
 
-                // Use DB price — not session price
                 $total += $product->price * $item['qty'];
             }
 
@@ -97,7 +90,7 @@ class OrderController extends Controller
                     'order_id'   => $order->id,
                     'product_id' => $productId,
                     'quantity'   => $item['qty'],
-                    'price'      => $product->price, // from DB
+                    'price'      => $product->price,
                 ]);
             }
 
@@ -114,15 +107,12 @@ class OrderController extends Controller
         }
     }
 
-    // ── User: Waiting / order detail ─────────────────────────
-
     public function waiting(Order $order)
     {
         if ($order->user_id !== Auth::id()) abort(403);
+        $order->load('items.product');
         return view('pages.waiting', compact('order'));
     }
-
-    // ── User: Upload payment proof ────────────────────────────
 
     public function uploadPayment(Request $request, Order $order)
     {
@@ -156,8 +146,6 @@ class OrderController extends Controller
         return back()->with('success', 'Bukti pembayaran berhasil diupload. Menunggu verifikasi admin.');
     }
 
-    // ── User: My orders ───────────────────────────────────────
-
     public function index()
     {
         $orders = Order::with('items.product')
@@ -167,12 +155,30 @@ class OrderController extends Controller
         return view('pages.orders', compact('orders'));
     }
 
-    // ── Admin: Orders list ────────────────────────────────────
-
-    public function adminOrders()
+    public function adminOrders(Request $request)
     {
-        $orders = Order::with('user')->latest()->paginate(20);
-        return view('admin.orders.index', compact('orders'));
+        $query = Order::with('user')->latest();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('customer_name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('payment_status')) {
+            $query->where('payment_status', $request->payment_status);
+        }
+
+        $orders             = $query->paginate(20);
+        $pendingPaymentCount = Order::where('payment_status', Order::PAYMENT_UPLOADED)->count();
+
+        return view('admin.orders.index', compact('orders', 'pendingPaymentCount'));
     }
 
     public function show($id)
@@ -190,8 +196,6 @@ class OrderController extends Controller
         return back()->with('success', 'Status pesanan diperbarui.');
     }
 
-    // ── Admin: Approve payment ────────────────────────────────
-
     public function approvePayment($id)
     {
         $order = Order::findOrFail($id);
@@ -208,8 +212,6 @@ class OrderController extends Controller
 
         return back()->with('success', 'Pembayaran disetujui. Pesanan masuk ke Diproses.');
     }
-
-    // ── Admin: Reject payment ─────────────────────────────────
 
     public function rejectPayment(Request $request, $id)
     {
@@ -229,5 +231,18 @@ class OrderController extends Controller
         ]);
 
         return back()->with('success', 'Pembayaran ditolak. Customer akan diminta upload ulang.');
+    }
+
+    public function destroy($id)
+    {
+        $order = Order::findOrFail($id);
+
+        if ($order->payment_proof) {
+            Storage::disk('public')->delete($order->payment_proof);
+        }
+
+        $order->delete();
+
+        return redirect()->route('admin.orders.index')->with('success', 'Pesanan berhasil dihapus.');
     }
 }

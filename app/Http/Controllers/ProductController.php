@@ -4,16 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::latest()->get();
+        $products = Product::where('is_available', true)->orWhere('stock', '>', 0)->latest()->get();
         return view('pages.menu', compact('products'));
     }
-
-    // ── Cart ──────────────────────────────────────────────────
 
     public function getCart()
     {
@@ -41,7 +40,7 @@ class ProductController extends Controller
             $cart[$product->id]['qty']++;
         } else {
             $cart[$product->id] = [
-                'name'  => e($product->name),
+                'name'  => $product->name,
                 'price' => (int) $product->price,
                 'qty'   => 1,
             ];
@@ -49,7 +48,6 @@ class ProductController extends Controller
 
         session()->put('cart', $cart);
 
-        // Return cart directly — JS does: this.cart = await r.json()
         return response()->json($cart);
     }
 
@@ -88,8 +86,6 @@ class ProductController extends Controller
         return response()->json([]);
     }
 
-    // ── Admin: Products ───────────────────────────────────────
-
     public function adminIndex()
     {
         $products = Product::latest()->get();
@@ -103,7 +99,12 @@ class ProductController extends Controller
             'price'       => 'required|integer|min:0|max:99999999',
             'stock'       => 'required|integer|min:0|max:99999',
             'description' => 'nullable|string|max:500',
+            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
+
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('products', 'public');
+        }
 
         Product::create(array_merge($validated, ['is_available' => true]));
 
@@ -117,9 +118,19 @@ class ProductController extends Controller
             'price'       => 'required|integer|min:0|max:99999999',
             'stock'       => 'required|integer|min:0|max:99999',
             'description' => 'nullable|string|max:500',
+            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        Product::findOrFail($id)->update($validated);
+        $product = Product::findOrFail($id);
+
+        if ($request->hasFile('image')) {
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $validated['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        $product->update($validated);
 
         return back()->with('success', 'Produk berhasil diupdate.');
     }
@@ -145,7 +156,13 @@ class ProductController extends Controller
 
     public function destroy($id)
     {
-        Product::findOrFail($id)->delete();
+        $product = Product::findOrFail($id);
+
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
+
+        $product->delete();
         return back()->with('success', 'Produk berhasil dihapus.');
     }
 }

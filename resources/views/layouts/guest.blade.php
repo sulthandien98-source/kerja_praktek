@@ -20,11 +20,7 @@
 
         <div class="text-center mb-6">
             <a href="{{ route('menu') }}" class="inline-block">
-                <div style="font-size:52px;line-height:1;margin-bottom:8px;">🥟</div>
-                <h1 style="color:#fbbf24;font-size:26px;font-weight:800;margin-bottom:4px;font-family:'Plus Jakarta Sans',sans-serif;">
-                    Dimsum Mak'Angga
-                </h1>
-                <p style="color:rgba(254,243,199,.6);font-size:13px;">Fresh &bull; Homemade &bull; Halal</p>
+                <img src="{{ asset('images/logo.jpeg') }}" alt="Dimsum Mak'Angga" style="width:140px;height:140px;object-fit:contain;border-radius:50%;margin:0 auto 8px;display:block;">
             </a>
         </div>
 

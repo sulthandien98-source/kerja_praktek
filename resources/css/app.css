@@ -738,15 +738,16 @@ body {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: 9999;
   background: rgba(15,23,42,.45);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
-  overflow-y: auto;
+  pointer-events: auto;
 }
+
 
 .modal {
   background: var(--surface);
@@ -757,6 +758,8 @@ body {
   box-shadow: 0 20px 60px rgba(15,23,42,.2);
   max-height: calc(100vh - 40px);
   overflow-y: auto;
+  pointer-events: auto;
+  position: relative;
 }
 
 /* ====== PROGRESS BAR ====== */
@@ -810,4 +813,8 @@ input[type="number"] { -moz-appearance: textfield; }
 @media (max-width: 639px) {
   .page-body { padding-bottom: 24px; }
   .stat-value { font-size: 22px; }
+}
+
+.hidden {
+    display: none;
 }

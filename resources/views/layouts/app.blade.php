@@ -15,7 +15,7 @@
 <header class="topbar">
 
   <a href="{{ route('menu') }}" class="topbar-brand">
-    <div class="brand-icon" style="font-size:22px;display:flex;align-items:center;justify-content:center;">🥟</div>
+    <img src="{{ asset('images/logo.jpeg') }}" alt="Dimsum Mak'Angga" style="width:40px;height:40px;object-fit:contain;border-radius:50%;">
     <div>
       <div class="brand-name">Mak'Angga</div>
       <div class="brand-sub">Dim Sum</div>
